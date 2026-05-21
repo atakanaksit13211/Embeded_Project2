@@ -9,6 +9,11 @@
 #define RST  D4
 #define DIO0 D8
 
+#define SERVO_ENABLE    D1
+#define SERVO_STEP      D2
+#define SERVO_DIRECTION D0
+#define SERVO_STEP_WAIT 1000 /* in microseconds */
+
 
 String outgoing;              // outgoing message
 byte msgCount = 0;            // count of outgoing messages
@@ -16,6 +21,23 @@ byte localAddress = 0xBC;     // address of this device
 byte destination = 0xFF;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
+
+void rotateServo(int steps, bool direction){
+  digitalWrite(SERVO_ENABLE, HIGH); //enable servo
+  digitalWrite(SERVO_DIRECTION, (direction?HIGH:LOW) ); //set direction 
+
+  long lastStepTime = millis(); // start time
+
+
+  for(int i = 0; i < steps; i++){
+    digitalWrite(SERVO_STEP, HIGH);
+    delayMicroseconds(SERVO_STEP_WAIT);
+    digitalWrite(SERVO_STEP, LOW);
+    delayMicroseconds(SERVO_STEP_WAIT);
+  }
+
+  //digitalWrite(SERVO_ENABLE, LOW); //disable servo
+}
 
 
 void setup() {
@@ -43,6 +65,15 @@ void setup() {
 
 void loop() {
   if (millis() - lastSendTime > interval) {
+    rotateServo(100, 1);
+    delay(1000);
+    rotateServo(100, 0);
+
+    lastSendTime = millis();
+  }
+
+  /*
+  if (millis() - lastSendTime > interval) {
     String message = "Message from Wemos D1 Mini!";   // send a message
     sendString(message, &msgCount, localAddress, destination);
     Serial.println("Sending " + message);
@@ -50,4 +81,5 @@ void loop() {
     interval = random(2000) + 1000;     // 
     LoRa.receive();                     // go back into receive mode
   }
+  */
 }
